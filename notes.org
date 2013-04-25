@@ -1,0 +1,29 @@
+* Process startup
+  System above 0x80000000
+  
+  Process has a thread
+  Two stacks: user and kernel, same as linux
+
+** booting
+   bootloader puts kernel into 0x100000
+   Kernal maps VA 0x80000000 to PA 0x0 (so BIOS region is up to 0x100000)
+
+   Then map low addresses, kernal space, etc., and then do the usual stuff: set CR3, CR0.PG, etc.
+** userinit
+*** allocproc
+    find unused slot and get a pid
+    get kernel stack
+    return to user space
+*** initcode
+    userinit copies this into process's memory (allocates one page, and maps VA 0 to it)
+** scheduler
+   userinit is done, so we must call the scheduler to start running processes
+
+* memory allocation
+  Xv6 seems to use 2 level paging, so only PDEs and PTEs
+  walkpgdir does a PDE tablewalk to find a PTE. May (depending on 'alloc') allocate PDE if there isn't one
+  mappages allocates a range by calling walkpgdir repeatedly and initializing the PTE
+
+  Allocator:
+  has a free list. Linked list which is stored in the free spaces!
+  Does not keep pre-allocated around, like Linux/Solaris
